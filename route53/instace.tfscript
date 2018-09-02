@@ -1,0 +1,20 @@
+resource "aws_instance" "myinstance" {
+    ami = "${lookup(var.AMIS, var.AWS_REGION)}"
+    instance_type = "t2.micro"
+    key_name = "${aws_key_pair.mykeypair.key_name}"
+    subnet_id = "${aws_subnet.main-public-1.id}"
+    vpc_security_group_ids = ["${aws_security_group.allow-ssh.id}"]
+     user_data = <<-EOF
+                    #!/bin/bash
+                    yum update -y
+                    yum install httpd -y
+                    echo "hi this lala from terraform lab!!" >> /var/www/html/index.html
+                    systemctl start httpd
+                    systemctl enable httpd
+                    EOF
+}
+
+resource  "aws_eip" "my-eip" {
+    instance = "${aws_instance.myinstance.id}"
+    vpc = "true"
+}
